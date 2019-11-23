@@ -16,6 +16,5 @@ Config:
 
     config :bbdd,
       table: "my_table_name",
-      prefix_length: 9 Bbdd
-
+      prefix_length: 9
 
