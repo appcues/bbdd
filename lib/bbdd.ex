@@ -23,38 +23,40 @@ defmodule Bbdd do
 
   @defaults [
     backend: Bbdd.Backend.DynamoDB,
+    prefix_length: 9,
   ]
 
-  defp config(name, opts) do
+  @doc false
+  def config(name, opts) do
     opts[name] || Application.get_env(:bbdd, name) || @defaults[name]
   end
 
+  @spec mark(String.t(), Keyword.t()) :: :ok | {:error, any}
   def mark(uuid, opts \\ []) do
-    with {:ok, prefix, suffix} <- split_uuid(uuid, opts) do
-      backend = config(:backend, opts)
-      backend.mark(prefix, suffix, opts)
-    end
+    {prefix, suffix} = split_uuid(uuid, opts)
+    backend = config(:backend, opts)
+    backend.mark(prefix, suffix, opts)
   end
 
+  @spec clear(String.t(), Keyword.t()) :: :ok | {:error, any}
   def clear(uuid, opts \\ []) do
-    with {:ok, prefix, suffix} <- split_uuid(uuid, opts) do
-      backend = config(:backend, opts)
-      backend.clear(prefix, suffix, opts)
-    end
+    {prefix, suffix} = split_uuid(uuid, opts)
+    backend = config(:backend, opts)
+    backend.clear(prefix, suffix, opts)
   end
 
+  @spec marked?(String.t(), Keyword.t()) :: {:ok, boolean} | {:error, any}
   def marked?(uuid, opts \\ []) do
-    with {:ok, prefix, suffix} <- split_uuid(uuid, opts) do
-      backend = config(:backend, opts)
-      backend.marked?(prefix, suffix, opts)
-    end
+    {prefix, suffix} = split_uuid(uuid, opts)
+    backend = config(:backend, opts)
+    backend.marked?(prefix, suffix, opts)
   end
 
+  @spec clear?(String.t(), Keyword.t()) :: {:ok, boolean} | {:error, any}
   def clear?(uuid, opts \\ []) do
-    with {:ok, prefix, suffix} <- split_uuid(uuid, opts) do
-      backend = config(:backend, opts)
-      backend.clear?(prefix, suffix, opts)
-    end
+    {prefix, suffix} = split_uuid(uuid, opts)
+    backend = config(:backend, opts)
+    backend.clear?(prefix, suffix, opts)
   end
 
   defp split_uuid(uuid, opts) do
@@ -67,7 +69,7 @@ defmodule Bbdd do
 
   defp normalize_uuid(uuid) do
     uuid
-    |> String.downcase
+    |> String.downcase()
     |> String.replace(~r/[^0-9a-f]/, "")
   end
 end
