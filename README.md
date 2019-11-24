@@ -31,8 +31,8 @@ Strategy:
 Config values can be passed through `opts` or set in `config/config.exs`:
 
     config :bbdd,
-      table: "my_table_name",  # required
-      prefix_length: 9         # optional (default 9)
+      table: "my_table_name"
+      prefix_length: 9
 
 ExAws will need to be configured in `config.exs` as well.
 
@@ -43,7 +43,7 @@ ExAws will need to be configured in `config.exs` as well.
 
 Common configs:
 
-* `:table` (String.t) The name of the DynamoDB table to use. Required.
+* `:table` (string) The name of the DynamoDB table to use. Required.
 * `:prefix_length` (integer) The number of UUID characters to use as a
   primary key.  Default 9.
 

@@ -25,7 +25,7 @@ defmodule Bbdd do
   * `Bbdd.mark(uuid)` marks an ID.
   * `Bbdd.clear(uuid)` unmarks an ID.
   * `Bbdd.marked?(uuid)` returns whether an ID has been marked within the
-    last two months.
+    last two calendar months.
   * `Bbdd.clear?(uuid)` returns the opposite of `Bbdd.marked?(uuid)`.
 
   ## Configuration
@@ -45,7 +45,7 @@ defmodule Bbdd do
 
   Common configs:
 
-  * `:table` (String.t) The name of the DynamoDB table to use. Required.
+  * `:table` (string) The name of the DynamoDB table to use. Required.
   * `:prefix_length` (integer) The number of UUID characters to use as a
     primary key.  Default 9.
 
@@ -74,6 +74,11 @@ defmodule Bbdd do
     opts[name] || Application.get_env(:bbdd, name) || @defaults[name]
   end
 
+  @doc ~S"""
+  Marks a UUID.  The mark will be purged from the database after two
+  calendar months (i.e., 28-62 days), but may still exist in local cache
+  after that time.
+  """
   @spec mark(String.t(), Keyword.t()) :: :ok | {:error, any}
   def mark(uuid, opts \\ []) do
     {prefix, suffix} = split_uuid(uuid, opts)
@@ -100,6 +105,9 @@ defmodule Bbdd do
     backend.mark(prefix, suffix, opts)
   end
 
+  @doc ~S"""
+  Unmarks a UUID. Note that the mark may persist in other servers' caches.
+  """
   @spec clear(String.t(), Keyword.t()) :: :ok | {:error, any}
   def clear(uuid, opts \\ []) do
     {prefix, suffix} = split_uuid(uuid, opts)
@@ -123,6 +131,12 @@ defmodule Bbdd do
     backend.clear(prefix, suffix, opts)
   end
 
+  @doc ~S"""
+  Returns `{:ok, true}` if the given UUID has been marked in the last two
+  calendar months (or possibly before this time, if it was marked or looked
+  up using this server and its record is still in cache).
+  Returns `{:ok, false}` otherwise.
+  """
   @spec marked?(String.t(), Keyword.t()) :: {:ok, boolean} | {:error, any}
   def marked?(uuid, opts \\ []) do
     {prefix, suffix} = split_uuid(uuid, opts)
@@ -161,6 +175,10 @@ defmodule Bbdd do
     backend.marked?(prefix, suffix, opts)
   end
 
+  @doc ~S"""
+  Returns whether a UUID has not been marked in the last two calendar months;
+  in other words, the opposite of `marked?/2`.
+  """
   @spec clear?(String.t(), Keyword.t()) :: {:ok, boolean} | {:error, any}
   def clear?(uuid, opts \\ []) do
     case marked?(uuid, opts) do
