@@ -8,6 +8,13 @@ defmodule Bbdd.MixProject do
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
+    ]
+  end
+
+  defp package do
+    [
+      organization: "appcues",
     ]
   end
 

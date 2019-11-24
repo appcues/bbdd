@@ -23,7 +23,7 @@ Strategy:
 * `Bbdd.mark(uuid)` marks an ID.
 * `Bbdd.clear(uuid)` unmarks an ID.
 * `Bbdd.marked?(uuid)` returns whether an ID has been marked within the
-  last two months.
+  last two calendar months.
 * `Bbdd.clear?(uuid)` returns the opposite of `Bbdd.marked?(uuid)`.
 
 ## Configuration
