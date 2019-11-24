@@ -6,7 +6,21 @@ defmodule Bbdd do
   described by Joanna Solmon in a blog post called [Tweaking DynamoDB Tables for
   Fun and Profit](https://eng.localytics.com/tweaking-dynamodb-tables/).
 
-  Synopsis:
+  ## TL;DR
+
+  Goals:
+  * Deduplicate a data set based on a UUID attached to each data point.
+  * Keep reads and writes under 1KB to minimize bandwidth costs.
+  * Age out old records to keep total size manageable.
+
+  Strategy:
+  * Use a fixed-length prefix of these UUIDs as primary keys in a K/V store.
+  * Under each key, store the remaining suffixes in a set data type according
+    to the calendar month of their addition.
+  * With each DB write, ensure that the suffix set from two months ago is
+    removed.
+
+  ## Usage
 
   * `Bbdd.mark(uuid)` marks an ID.
   * `Bbdd.clear(uuid)` unmarks an ID.
@@ -14,15 +28,26 @@ defmodule Bbdd do
     last two months.
   * `Bbdd.clear?(uuid)` returns the opposite of `Bbdd.marked?(uuid)`.
 
-  Config:
+  ## Configuration
+
+  Config values can be passed through `opts` or set in `config/config.exs`:
 
       config :bbdd,
-        table: "my_table_name",
-        prefix_length: 9
+        table: "my_table_name",  # required
+        prefix_length: 9         # optional (default 9)
+
+  ExAws will need to be configured in `config.exs` as well.
+
+      config :ex_aws, :dynamodb,
+        access_key_id: "123",
+        secret_access_key: "abc",
+        region: "us-west-2"
   """
 
   @defaults [
     backend: Bbdd.Backend.DynamoDB,
+    cache: Bbdd.Cache.Cachex,
+    cache_name: :bbdd_cache,
     prefix_length: 9,
   ]
 
@@ -34,6 +59,25 @@ defmodule Bbdd do
   @spec mark(String.t(), Keyword.t()) :: :ok | {:error, any}
   def mark(uuid, opts \\ []) do
     {prefix, suffix} = split_uuid(uuid, opts)
+    cached_mark(uuid, prefix, suffix, opts)
+  end
+
+  defp cached_mark(uuid, prefix, suffix, opts) do
+    case config(:cache, opts) do
+      :none ->
+        uncached_mark(prefix, suffix, opts)
+
+      cache ->
+        case cache.get(uuid, opts) do
+          {:ok, nil} ->
+            with :ok <- uncached_mark(prefix, suffix, opts) do
+              cache.put(uuid, true, opts)
+            end
+        end
+    end
+  end
+
+  defp uncached_mark(prefix, suffix, opts) do
     backend = config(:backend, opts)
     backend.mark(prefix, suffix, opts)
   end
@@ -41,6 +85,22 @@ defmodule Bbdd do
   @spec clear(String.t(), Keyword.t()) :: :ok | {:error, any}
   def clear(uuid, opts \\ []) do
     {prefix, suffix} = split_uuid(uuid, opts)
+    cached_clear(uuid, prefix, suffix, opts)
+  end
+
+  defp cached_clear(uuid, prefix, suffix, opts) do
+    case config(:cache, opts) do
+      :none ->
+        uncached_clear(prefix, suffix, opts)
+
+      cache ->
+        with :ok <- uncached_clear(prefix, suffix, opts) do
+          cache.delete(uuid, opts)
+        end
+    end
+  end
+
+  defp uncached_clear(prefix, suffix, opts) do
     backend = config(:backend, opts)
     backend.clear(prefix, suffix, opts)
   end
@@ -48,15 +108,48 @@ defmodule Bbdd do
   @spec marked?(String.t(), Keyword.t()) :: {:ok, boolean} | {:error, any}
   def marked?(uuid, opts \\ []) do
     {prefix, suffix} = split_uuid(uuid, opts)
+    cached_marked?(uuid, prefix, suffix, opts)
+  end
+
+  defp cached_marked?(uuid, prefix, suffix, opts) do
+    case config(:cache, opts) do
+      :none ->
+        uncached_marked?(prefix, suffix, opts)
+
+      cache ->
+        case cache.get(uuid, opts) do
+          {:ok, nil} ->
+            case uncached_marked?(prefix, suffix, opts) do
+              {:ok, true} ->
+                with :ok <- cache.put(uuid, true, opts) do
+                  {:ok, true}
+                end
+
+              error ->
+                error
+            end
+
+          {:ok, _} ->
+            {:ok, true}
+
+          other ->
+            other
+        end
+    end
+  end
+
+  defp uncached_marked?(prefix, suffix, opts) do
     backend = config(:backend, opts)
     backend.marked?(prefix, suffix, opts)
   end
 
   @spec clear?(String.t(), Keyword.t()) :: {:ok, boolean} | {:error, any}
   def clear?(uuid, opts \\ []) do
-    {prefix, suffix} = split_uuid(uuid, opts)
-    backend = config(:backend, opts)
-    backend.clear?(prefix, suffix, opts)
+    case marked?(uuid, opts) do
+      {:ok, true} -> {:ok, false}
+      {:ok, false} -> {:ok, true}
+      error -> error
+    end
   end
 
   defp split_uuid(uuid, opts) do

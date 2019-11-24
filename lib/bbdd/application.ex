@@ -6,12 +6,12 @@ defmodule Bbdd.Application do
   use Application
 
   def start(_type, _args) do
-    children = []
-    # Starts a worker by calling: Bbdd.Worker.start_link(arg)
-    # {Bbdd.Worker, arg}
+    import Supervisor.Spec, warn: false
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
+    children = [
+      worker(Cachex, [Bbdd.config(:cache_name, []), []]),
+    ]
+
     opts = [strategy: :one_for_one, name: Bbdd.Supervisor]
     Supervisor.start_link(children, opts)
   end

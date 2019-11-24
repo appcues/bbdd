@@ -1,4 +1,6 @@
 defmodule Bbdd.Backend.DynamoDB do
+  @moduledoc false
+
   @behaviour Bbdd.Backend
 
   @impl true
@@ -29,13 +31,6 @@ defmodule Bbdd.Backend.DynamoDB do
       {:ok,
        MapSet.member?(prev_suffix_set, suffix) ||
          MapSet.member?(cur_suffix_set, suffix)}
-    end
-  end
-
-  @impl true
-  def clear?(prefix, suffix, opts) do
-    with {:ok, marked?} <- marked?(prefix, suffix, opts) do
-      {:ok, !marked?}
     end
   end
 
