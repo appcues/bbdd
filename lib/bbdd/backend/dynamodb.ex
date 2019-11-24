@@ -27,7 +27,7 @@ defmodule Bbdd.Backend.DynamoDB do
 
     with {:ok, response} <- ExAws.request(request),
          {:ok, prev_suffix_set, cur_suffix_set} <-
-           decode_response_marked?(response) do
+           decode_response_marked?(response, opts) do
       {:ok,
        MapSet.member?(prev_suffix_set, suffix) ||
          MapSet.member?(cur_suffix_set, suffix)}
@@ -45,8 +45,8 @@ defmodule Bbdd.Backend.DynamoDB do
     """
 
     expression_attribute_names = %{
-      "#this_month" => n_months_ago(0),
-      "#two_months_ago" => n_months_ago(2),
+      "#this_month" => n_months_ago(0, opts),
+      "#two_months_ago" => n_months_ago(2, opts),
     }
 
     expression_attribute_values = %{
@@ -71,9 +71,9 @@ defmodule Bbdd.Backend.DynamoDB do
     """
 
     expression_attribute_names = %{
-      "#this_month" => n_months_ago(0),
-      "#last_month" => n_months_ago(1),
-      "#two_months_ago" => n_months_ago(2),
+      "#this_month" => n_months_ago(0, opts),
+      "#last_month" => n_months_ago(1, opts),
+      "#two_months_ago" => n_months_ago(2, opts),
     }
 
     expression_attribute_values = %{
@@ -95,15 +95,15 @@ defmodule Bbdd.Backend.DynamoDB do
   end
 
   ## Returns MapSets containing last month's and this month's suffixes.
-  defp decode_response_marked?(response) do
+  defp decode_response_marked?(response, opts) do
     item = response["Item"]
-    last_month_set = MapSet.new(item[n_months_ago(1)]["SS"] || [])
-    this_month_set = MapSet.new(item[n_months_ago(0)]["SS"] || [])
+    last_month_set = MapSet.new(item[n_months_ago(1, opts)]["SS"] || [])
+    this_month_set = MapSet.new(item[n_months_ago(0, opts)]["SS"] || [])
     {:ok, last_month_set, this_month_set}
   end
 
   ## Returns the column name for N months ago.
-  defp n_months_ago(n) do
+  defp n_months_ago(n, opts) do
     {year, month, _d} = :erlang.date()
 
     if month > n do
@@ -111,10 +111,11 @@ defmodule Bbdd.Backend.DynamoDB do
     else
       {year - 1, 12 + month - n}
     end
-    |> to_column
+    |> to_column(opts)
   end
 
-  defp to_column({year, month}) do
-    "ids_#{year}_#{month}"
+  defp to_column({year, month}, opts) do
+    column_prefix = Bbdd.config(:column_prefix, opts)
+    "#{column_prefix}_#{year}_#{month}"
   end
 end

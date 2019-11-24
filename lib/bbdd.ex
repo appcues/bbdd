@@ -46,6 +46,7 @@ defmodule Bbdd do
 
   @defaults [
     backend: Bbdd.Backend.DynamoDB,
+    column_prefix: "bbdd",
     cache: Bbdd.Cache.Cachex,
     cache_name: :bbdd_cache,
     prefix_length: 9,
