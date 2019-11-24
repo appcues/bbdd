@@ -33,8 +33,8 @@ defmodule Bbdd do
   Config values can be passed through `opts` or set in `config/config.exs`:
 
       config :bbdd,
-        table: "my_table_name",  # required
-        prefix_length: 9         # optional (default 9)
+        table: "my_table_name",
+        prefix_length: 9
 
   ExAws will need to be configured in `config.exs` as well.
 
@@ -42,6 +42,23 @@ defmodule Bbdd do
         access_key_id: "123",
         secret_access_key: "abc",
         region: "us-west-2"
+
+  Common configs:
+
+  * `:table` (String.t) The name of the DynamoDB table to use. Required.
+  * `:prefix_length` (integer) The number of UUID characters to use as a
+    primary key.  Default 9.
+
+  Other configs:
+
+  * `:backend` (module) Deduping backend. Default `Bbdd.Backend.DynamoDB`.
+  * `:column_prefix` (string) Prefix for each DynamoDB column. E.g., a prefix
+    of `xyz` in November 2019 would result in a column named `xyz_2019_11`.
+  * `:cache` (module or `:none`) Cache backend. Default `Bbdd.Cache.Cachex`.
+    Set to `:none` to skip caching entirely.
+  * `:cache_name` (atom) Cachex cache name to use. Default `:bbdd_cache`.
+    Changing this parameter requires starting the given cache manually;
+    see Cachex documentation.
   """
 
   @defaults [
@@ -126,15 +143,15 @@ defmodule Bbdd do
                   {:ok, true}
                 end
 
-              error ->
-                error
+              other ->
+                other
             end
 
           {:ok, _} ->
             {:ok, true}
 
-          other ->
-            other
+          error ->
+            error
         end
     end
   end
