@@ -14,14 +14,14 @@ Goals:
 * Age out old records to keep total size manageable.
 
 Strategy:
-* Use a fixed-length prefix of these UUIDs as primary keys in a K/V store.
+* Use a fixed-length prefix of these UUIDs as primary (hash) keys in Dynamo.
 * Under each key, store the remaining suffixes in a set data type according
   to the calendar month of their addition.
 * With each DB write, ensure that the suffix set from two months ago is
   removed.
 
 Enhancement to original strategy:
-* Allow UUIDs to be encoded as base 16, 32, or 64 in DynamoDB. This provides
+* Allow UUIDs to be encoded as base 16, 32, or 64 in Dynamo. This provides
   a range of record and total size options. See the `Bbdd.Size` docs for
   more information. (Input UUIDs must still be encoded as a base 16 string,
   i.e. hexadecimal with optional hyphens.)
