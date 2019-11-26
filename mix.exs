@@ -9,6 +9,12 @@ defmodule Bbdd.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
+
+      ## Docs
+      name: "Boop Boop Dedupe",
+      docs: [
+        main: "Bbdd",
+      ],
     ]
   end
 

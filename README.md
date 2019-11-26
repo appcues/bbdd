@@ -1,5 +1,7 @@
 # Bbdd -- Boop Boop Dedupe
 
+<!--start-docs-->
+
 Bbdd is a deduplication engine. It is built on DynamoDB and follows the design
 described by Joanna Solmon in a blog post called [Tweaking DynamoDB Tables for
 Fun and Profit](https://eng.localytics.com/tweaking-dynamodb-tables/).
@@ -8,7 +10,7 @@ Fun and Profit](https://eng.localytics.com/tweaking-dynamodb-tables/).
 
 Goals:
 * Deduplicate a data set based on a UUID attached to each data point.
-* Keep reads and writes under 1KB to minimize bandwidth costs.
+* Keep records under 1KB to minimize write bandwidth costs.
 * Age out old records to keep total size manageable.
 
 Strategy:
@@ -31,6 +33,10 @@ Enhancement to original strategy:
 * `Bbdd.marked?(uuid)` returns whether an ID has been marked within the
   last two calendar months.
 * `Bbdd.clear?(uuid)` returns the opposite of `Bbdd.marked?(uuid)`.
+
+`uuid` must be a 128-bit value encoded as a hexadecimal string,
+with optional hyphens, e.g. `7574e9c6-5960-499e-9a7e-9b6495eb23ed`
+or `CC317EBA4A514CC28E7A887738FC6B25`.
 
 ## Configuration
 
