@@ -18,6 +18,12 @@ Strategy:
 * With each DB write, ensure that the suffix set from two months ago is
   removed.
 
+Enhancement to original strategy:
+* Allow UUIDs to be encoded as base 16, 32, or 64 in DynamoDB. This provides
+  a range of record and total size options. See the `Bbdd.Size` docs for
+  more information. (Input UUIDs must still be encoded as a base 16 string,
+  i.e. hexadecimal with optional hyphens.)
+
 ## Usage
 
 * `Bbdd.mark(uuid)` marks an ID.
@@ -31,7 +37,7 @@ Strategy:
 Config values can be passed through `opts` or set in `config/config.exs`:
 
     config :bbdd,
-      table: "my_table_name"
+      table: "my_table_name",
       prefix_length: 9
 
 ExAws will need to be configured in `config.exs` as well.
@@ -44,8 +50,10 @@ ExAws will need to be configured in `config.exs` as well.
 Common configs:
 
 * `:table` (string) The name of the DynamoDB table to use. Required.
-* `:prefix_length` (integer) The number of UUID characters to use as a
-  primary key.  Default 9.
+* `:base` (`16`, `32`, or `64`) The method of representing the UUID in
+  DynamoDB: hexadecimal/base 16, base 32, or base 64. Default 16.
+* `:prefix_length` (integer) The number of characters of each `base`-
+  encoded UUID to use as a primary key. Default 9.
 
 Other configs:
 
@@ -57,5 +65,4 @@ Other configs:
 * `:cache_name` (atom) Cachex cache name to use. Default `:bbdd_cache`.
   Changing this parameter requires starting the given cache manually;
   see Cachex documentation.
-
 
