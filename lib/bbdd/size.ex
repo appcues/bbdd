@@ -28,7 +28,7 @@ defmodule Bbdd.Size do
       :ok
 
   We see from the output that, assuming a workload of 10 billion IDs per month,
-  `base: 64 and `prefix_length: 5` has the lowest total size while still being
+  `base: 64` and `prefix_length: 5` has the lowest total size while still being
   well under 1KB per record.  At 422 bytes, the workload could more than double
   before needing to worry about increased bandwidth costs.
   """
