@@ -36,7 +36,7 @@ defmodule Bbdd.MixProject do
   defp deps do
     [
       {:ex_aws, "~> 2.1"},
-      {:ex_aws_dynamo, "~> 2.3"},
+      {:ex_aws_dynamo, "~> 4.0"},
       {:hackney, "~> 1.0"},
       {:poison, "~> 2.0"},
       {:cachex, "~> 3.0"},
