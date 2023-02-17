@@ -41,7 +41,7 @@ defmodule Bbdd.MixProject do
       {:poison, "~> 2.0"},
       {:cachex, "~> 3.0"},
       {:dialyxir, "~> 1.0.0-rc.7", runtime: false},
-      {:freedom_formatter, "~> 1.0", runtime: false},
+      {:freedom_formatter, "~> 2.0", runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:uuid, "~> 1.0", only: [:dev, :test]},
     ]
