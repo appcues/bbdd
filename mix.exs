@@ -38,7 +38,7 @@ defmodule Bbdd.MixProject do
       {:ex_aws, "~> 2.1"},
       {:ex_aws_dynamo, "~> 2.3"},
       {:hackney, "~> 1.0"},
-      {:poison, "~> 2.0"},
+      {:poison, "~> 5.0"},
       {:cachex, "~> 3.0"},
       {:dialyxir, "~> 1.0.0-rc.7", runtime: false},
       {:freedom_formatter, "~> 1.0", runtime: false},
